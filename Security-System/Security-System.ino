@@ -32,7 +32,7 @@ class passwd {
     }
     void setXY1(int x, int y) {
       x1 = x;
-      y1 ; y;
+      y1 = y;
     }
     void setXY2(int x, int y) {
       x2 = x;
