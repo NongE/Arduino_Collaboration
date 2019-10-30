@@ -186,7 +186,10 @@ void loop() {
   if (transFsr8 > 6)
   {
     ptXY[pwIndex].setXY(2, 2);
-    
+    if (pwIndex != 0)
+    {
+      pwIndex += checkPrePoint(ptXY[pwIndex], ptXY[pwIndex - 1]);
+    }
     pwIndex ++;
   }
 
