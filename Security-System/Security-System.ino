@@ -19,7 +19,7 @@ class pointXY {
 class passwd {
 
   private:
-    int area;
+    float area;
     int x1;
     int y1;
     int x2;
