@@ -1,8 +1,18 @@
+
+/*************return 값을 2개 받기 위해 구조체 생성 ************/
+struct values{
+
+  int px;
+  int py;
+};
+
+/************* 좌표 클래스 ************/
 class pointXY {
   private:
     int x;
     int y;
   public:
+    values v;
     void setXY(int x, int y) {
       this->x = x;
       this->y = y;
@@ -13,30 +23,27 @@ class pointXY {
     int getY() {
       return y;
     }
+    values getXY(){
+        v.px = this->x;
+        v.py = this->y;
+        return v;
+    }
 
 };
-
+/*************비밀번호 클래스 ************/
 class passwd {
 
   private:
     float area;
-    int x1;
-    int y1;
-    int x2;
-    int y2;
 
   public:
 
+    pointXY passwdXY1;
+    pointXY passwdXY2;
+    pointXY passwdXY3;
+
     void setArea(float area) {
       this->area = area;
-    }
-    void setXY1(int x, int y) {
-      x1 = x;
-      y1 = y;
-    }
-    void setXY2(int x, int y) {
-      x2 = x;
-      y2 ; y;
     }
 
     float test() {
@@ -45,6 +52,7 @@ class passwd {
 
 };
 
+/*************이전 좌표와 현재 좌표가 중복인지 확인 ************/
 int checkPrePoint(pointXY tptXY, pointXY pretptXY) {
 
   if ((tptXY.getX() == pretptXY.getX()) &&
@@ -58,6 +66,7 @@ int checkPrePoint(pointXY tptXY, pointXY pretptXY) {
     return 0;
 }
 
+/*************전역변수 선언 ************/
 passwd pw;
 pointXY ptXY[3];
 int pwIndex = 0;
@@ -73,17 +82,18 @@ int fsrSensor7 = A7; // 8번 압력센서 A7에 연결
 int fsrSensor8 = A8; // 9번 압력센서 A8에 연결
 
 void setup() {
-  // put your setup code here, to run once:
-
+/*************초기 암호 설정(2,4,5) ************/
   pw.setArea(0.5);
-  pw.setXY1(1, -1);
-  pw.setXY2(0, -1);
+  pw.passwdXY1.setXY(1, 0);
+  pw.passwdXY2.setXY(0, -1);
+  pw.passwdXY3.setXY(1, 1);
 
 }
 
 void loop() {
   // put your main code here, to run repeatedly:
 
+  /************* 압력센서 9개 선언 ************/
   int fsr0 = analogRead(fsrSensor0); // A0로 부터 아날로그 신호를 읽고 이를 fsr0에 저장
   int transFsr0 = map(fsr0, 0, 1024, 0, 255); // maapping 실시
 
