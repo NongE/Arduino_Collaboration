@@ -1,6 +1,6 @@
 
 /*************return 값을 2개 받기 위해 구조체 생성 ************/
-struct values{
+struct values {
 
   int px;
   int py;
@@ -23,10 +23,10 @@ class pointXY {
     int getY() {
       return y;
     }
-    values getXY(){
-        v.px = this->x;
-        v.py = this->y;
-        return v;
+    values getXY() {
+      v.px = this->x;
+      v.py = this->y;
+      return v;
     }
 
 };
@@ -35,22 +35,55 @@ class passwd {
 
   private:
     float area;
+    pointXY diffPoint[2];
+    int areaFlag = 0;
+    int pointFlag = 0;
 
   public:
 
-    pointXY passwdXY1;
-    pointXY passwdXY2;
-    pointXY passwdXY3;
+    pointXY passwdXY[3];
+
 
     void setArea(float area) {
       this->area = area;
+
+    }
+    void setDiffPoint(pointXY diffPoint[]) {
+      this->diffPoint[0] = diffPoint[0];
+      this->diffPoint[1] = diffPoint[1];
     }
 
-    float test() {
+    float getArea() {
       return area;
     }
 
+    pointXY* getDiffPoint() {
+      return diffPoint;
+    }
+
+
+
 };
+
+/*************좌표 간의 넓이 계산 ************/
+float calArea(pointXY ptXY[]) {
+  // (ptXY[0].x, ptXY[0].y)  (ptXY[1].x,ptXY[1].y)   (ptXY[2].x, ptXY[2].y)
+  //     a         b             c         d              e         f
+
+  float area = 0.5 * ((ptXY[0].getX() * ptXY[1].getY() + ptXY[1].getX() * ptXY[2].getY() + ptXY[2].getX() * ptXY[0].getY())
+                      - (ptXY[1].getX() * ptXY[0].getY() + ptXY[2].getX() * ptXY[1].getY() + ptXY[0].getX() * ptXY[2].getY()));
+  return area;
+}
+
+/*************좌표 간의 차이 계산 ************/
+pointXY* calDiffPoint(pointXY ptXY[]) {
+
+  pointXY diffPoint[2];
+  diffPoint[0].setXY((ptXY[0].getX() - (ptXY[0].getX())), (ptXY[0].getY() - (ptXY[0].getY())));
+  diffPoint[1].setXY((ptXY[0].getX() - (ptXY[1].getX())), (ptXY[0].getY() - (ptXY[1].getY())));
+  return diffPoint;
+
+}
 
 /*************이전 좌표와 현재 좌표가 중복인지 확인 ************/
 int checkPrePoint(pointXY tptXY, pointXY pretptXY) {
@@ -65,6 +98,53 @@ int checkPrePoint(pointXY tptXY, pointXY pretptXY) {
   else
     return 0;
 }
+
+/*************비밀번호 동일여부 확인 ************/
+int checkAll(pointXY ptXY[], passwd pw) {
+
+
+  /*************넓이 비교 ************/
+
+  int index = 0;
+  pointXY tmp[2];
+  pointXY tmppass[2];
+  /*if ((calArea(ptXY) == pw.getArea())||(calArea(ptXY) == 4*pw.getArea()))*/
+  if (calArea(ptXY) == pw.getArea()) {
+    index++;
+    printf("1차 검사 통과\n");
+  } 
+
+  /*************차이 비교 ************/
+
+  tmp[0].setXY(calDiffPoint(ptXY)[0].getX(), calDiffPoint(ptXY)[0].getY());
+  tmp[1].setXY(calDiffPoint(ptXY)[1].getX(), calDiffPoint(ptXY)[1].getY());
+
+  tmppass[0].setXY(pw.getDiffPoint()[0].getX(), pw.getDiffPoint()[0].getY());
+  tmppass[1].setXY(pw.getDiffPoint()[1].getX(), pw.getDiffPoint()[1].getY());
+
+
+/* if (tmp[0].getX() == tmppass[0].getX() &&
+      tmp[0].getY() == tmppass[0].getY() &&
+     tmp[1].getX() == tmppass[1].getX() &&
+      tmp[1].getY() == tmppass[1].getY() ||
+      tmp[0].getX() == 2*tmppass[0].getX() &&
+       tmp[0].getY() == 2*tmppass[0].getY() &&
+      tmp[1].getX() == 2*tmppass[1].getX() &&
+       tmp[1].getY() == 2*tmppass[1].getY()) */
+
+  if (tmp[0].getX() == tmppass[0].getX() &&
+      tmp[0].getY() == tmppass[0].getY() &&
+      tmp[1].getX() == tmppass[1].getX() &&
+      tmp[1].getY() == tmppass[1].getY())
+  {
+    index++;
+    printf("2차 검사 통과\n");
+  }
+
+  return index;
+
+}
+
 
 /*************전역변수 선언 ************/
 passwd pw;
@@ -82,11 +162,13 @@ int fsrSensor7 = A7; // 8번 압력센서 A7에 연결
 int fsrSensor8 = A8; // 9번 압력센서 A8에 연결
 
 void setup() {
-/*************초기 암호 설정(2,4,5) ************/
-  pw.setArea(0.5);
-  pw.passwdXY1.setXY(1, 0);
-  pw.passwdXY2.setXY(0, -1);
-  pw.passwdXY3.setXY(1, 1);
+  /*************초기 암호 설정(2,4,5) ************/
+  //pw.setArea(0.5);
+  pw.passwdXY[0].setXY(1, 0);
+  pw.passwdXY[1].setXY(0, -1);
+  pw.passwdXY[2].setXY(1, 1);
+  pw.setArea(calArea(pw.passwdXY));
+  pw.setDiffPoint(pw.passwdXY);
 
 }
 
@@ -121,89 +203,102 @@ void loop() {
   int fsr8 = analogRead(fsrSensor8); // A8로 부터 아날로그 신호를 읽고 이를 fsr8에 저장
   int transFsr8 = map(fsr8, 0, 1024, 0, 255); // maapping 실시
 
-  if (transFsr0 > 6)
+  /************* 사용자가 3개의 패턴을 입력할때까지 압력센서로 입력을 받음 ************/
+  if (pwIndex < 3)
   {
-    ptXY[pwIndex].setXY(0, 0);
-    if (pwIndex != 0)
+    if (transFsr0 > 6)
     {
-      pwIndex += checkPrePoint(ptXY[pwIndex], ptXY[pwIndex - 1]);
+      ptXY[pwIndex].setXY(0, 0);
+      if (pwIndex != 0)
+      {
+        pwIndex += checkPrePoint(ptXY[pwIndex], ptXY[pwIndex - 1]);
+      }
+      pwIndex++;
     }
-    pwIndex++;
-  }
-  if (transFsr1 > 6)
-  {
-    ptXY[pwIndex].setXY(1, 0);
-    if (pwIndex != 0)
+    if (transFsr1 > 6)
     {
-      pwIndex += checkPrePoint(ptXY[pwIndex], ptXY[pwIndex - 1]);
+      ptXY[pwIndex].setXY(1, 0);
+      if (pwIndex != 0)
+      {
+        pwIndex += checkPrePoint(ptXY[pwIndex], ptXY[pwIndex - 1]);
+      }
+      pwIndex ++;
     }
-    pwIndex ++;
-  }
-  if (transFsr2 > 6)
-  {
-    ptXY[pwIndex].setXY(2, 0);
-    if (pwIndex != 0)
+    if (transFsr2 > 6)
     {
-      pwIndex += checkPrePoint(ptXY[pwIndex], ptXY[pwIndex - 1]);
+      ptXY[pwIndex].setXY(2, 0);
+      if (pwIndex != 0)
+      {
+        pwIndex += checkPrePoint(ptXY[pwIndex], ptXY[pwIndex - 1]);
+      }
+      pwIndex ++;
     }
-    pwIndex ++;
-  }
-  if (transFsr3 > 6)
-  {
-    ptXY[pwIndex].setXY(0, 1);
-    if (pwIndex != 0)
+    if (transFsr3 > 6)
     {
-      pwIndex += checkPrePoint(ptXY[pwIndex], ptXY[pwIndex - 1]);
+      ptXY[pwIndex].setXY(0, 1);
+      if (pwIndex != 0)
+      {
+        pwIndex += checkPrePoint(ptXY[pwIndex], ptXY[pwIndex - 1]);
+      }
+      pwIndex ++;
     }
-    pwIndex ++;
-  }
-  if (transFsr4 > 6)
-  {
-    ptXY[pwIndex].setXY(1, 1);
-    if (pwIndex != 0)
+    if (transFsr4 > 6)
     {
-      pwIndex += checkPrePoint(ptXY[pwIndex], ptXY[pwIndex - 1]);
+      ptXY[pwIndex].setXY(1, 1);
+      if (pwIndex != 0)
+      {
+        pwIndex += checkPrePoint(ptXY[pwIndex], ptXY[pwIndex - 1]);
+      }
+      pwIndex ++;
     }
-    pwIndex ++;
-  }
-  if (transFsr5 > 6)
-  {
-    ptXY[pwIndex].setXY(2, 1);
-    if (pwIndex != 0)
+    if (transFsr5 > 6)
     {
-      pwIndex += checkPrePoint(ptXY[pwIndex], ptXY[pwIndex - 1]);
+      ptXY[pwIndex].setXY(2, 1);
+      if (pwIndex != 0)
+      {
+        pwIndex += checkPrePoint(ptXY[pwIndex], ptXY[pwIndex - 1]);
+      }
+      pwIndex ++;
     }
-    pwIndex ++;
-  }
-  if (transFsr6 > 6)
-  {
-    ptXY[pwIndex].setXY(0, 2);
-    if (pwIndex != 0)
+    if (transFsr6 > 6)
     {
-      pwIndex += checkPrePoint(ptXY[pwIndex], ptXY[pwIndex - 1]);
+      ptXY[pwIndex].setXY(0, 2);
+      if (pwIndex != 0)
+      {
+        pwIndex += checkPrePoint(ptXY[pwIndex], ptXY[pwIndex - 1]);
+      }
+      pwIndex ++;
     }
-    pwIndex ++;
-  }
-  if (transFsr7 > 6)
-  {
-    ptXY[pwIndex].setXY(1, 2);
-    if (pwIndex != 0)
+    if (transFsr7 > 6)
     {
-      pwIndex += checkPrePoint(ptXY[pwIndex], ptXY[pwIndex - 1]);
+      ptXY[pwIndex].setXY(1, 2);
+      if (pwIndex != 0)
+      {
+        pwIndex += checkPrePoint(ptXY[pwIndex], ptXY[pwIndex - 1]);
+      }
+      pwIndex ++;
     }
-    pwIndex ++;
-  }
-  if (transFsr8 > 6)
-  {
-    ptXY[pwIndex].setXY(2, 2);
-    if (pwIndex != 0)
+    if (transFsr8 > 6)
     {
-      pwIndex += checkPrePoint(ptXY[pwIndex], ptXY[pwIndex - 1]);
+      ptXY[pwIndex].setXY(2, 2);
+      if (pwIndex != 0)
+      {
+        pwIndex += checkPrePoint(ptXY[pwIndex], ptXY[pwIndex - 1]);
+      }
+      pwIndex ++;
     }
-    pwIndex ++;
   }
 
-
+  else if (pwIndex == 2)
+  {
+    if (checkAll(ptXY, pw) == 2)
+    {
+      printf("암호 일치\n");
+    }
+    else {
+      printf("암호 불일치\n");
+    }
+  }
 
 
 }
