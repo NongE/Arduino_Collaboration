@@ -1,5 +1,5 @@
 
-/*************return 값을 2개 받기 위해 구조체 생성 ************/
+/*************return 값을 2개 반환하기 위해 구조체 생성 ************/
 struct values {
 
   int px;
@@ -34,16 +34,12 @@ class pointXY {
 class passwd {
 
   private:
-    float area;
-    pointXY diffPoint[2];
-    int areaFlag = 0;
-    int pointFlag = 0;
+    float area; // 세점으로하는 삼각형의 넓이
+    pointXY diffPoint[2]; // 한 점을 기준으로 나머지 점의 차를 저장
 
   public:
-
-    pointXY passwdXY[3];
-
-
+    pointXY passwdXY[3]; // 비밀번호 좌표를 저장하는 변수
+    
     void setArea(float area) {
       this->area = area;
 
@@ -86,10 +82,10 @@ pointXY* calDiffPoint(pointXY ptXY[]) {
 }
 
 /*************이전 좌표와 현재 좌표가 중복인지 확인 ************/
-int checkPrePoint(pointXY tptXY, pointXY pretptXY) {
+int checkPrePoint(pointXY ptXY, pointXY preptXY) {
 
-  if ((tptXY.getX() == pretptXY.getX()) &&
-      (tptXY.getY() == pretptXY.getY()))
+  if ((ptXY.getX() == preptXY.getX()) &&
+      (ptXY.getY() == preptXY.getY()))
   {
 
     return -1;
@@ -106,8 +102,8 @@ int checkAll(pointXY ptXY[], passwd pw) {
   /*************넓이 비교 ************/
 
   int index = 0;
-  pointXY tmp[2];
-  pointXY tmppass[2];
+  pointXY tmp[2]; // 기준점으로 부터 차이를 저장하는 임시 변수
+  pointXY tmppass[2]; // 기준점으로 부터 차이를 저장하는 임시 변수
   /*if ((calArea(ptXY) == pw.getArea())||(calArea(ptXY) == 4*pw.getArea()))*/
   if (calArea(ptXY) == pw.getArea()) {
     index++;
