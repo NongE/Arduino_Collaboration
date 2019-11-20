@@ -1,3 +1,13 @@
+#include <Servo.h>
+#include <Adafruit_NeoPixel.h>
+
+#ifdef __AVR__
+#include <avr/power.h>
+#endif
+
+#define LED_PIN  11
+#define LED_COUNT 4 // 네오픽셀의 총 갯수는 4
+Adafruit_NeoPixel strip(LED_COUNT, LED_PIN, NEO_GRB + NEO_KHZ800);
 /*************return 값을 2개 반환하기 위해 구조체 생성 ************/
 struct values {
 
@@ -134,18 +144,54 @@ int fsrSensor6 = A6; // 7번 압력센서 A6에 연결
 int fsrSensor7 = A7; // 8번 압력센서 A7에 연결
 int fsrSensor8 = A8; // 9번 압력센서 A8에 연결
 
+int inputPIN = 2;
+int statusPIR = 0;
+int valueRead = 0;
+
+Servo myservo;  // 서보모터 선
+
+int echoPin = 13;
+int trigPin = 12;
+
+int openFlag = 0;
+float timer;
+int bt = 0;
+
 void setup() {
-  /*************초기 암호 설정(2,4,5) ************/
+
+#if defined(__AVR_ATtiny85__) && (F_CPU == 16000000)
+  clock_prescale_set(clock_div_1);
+#endif
+
+  strip.begin();
+  strip.show();
+
+
+  /*************초기 암호 설정(1,4,5) ************/
   Serial.begin(9600);
   pw.passwdXY[0].setXY(0, 0);
   pw.passwdXY[1].setXY(0, 1);
   pw.passwdXY[2].setXY(1, 1);
-
+  myservo.attach(7);
+  myservo.write(0);
+  pinMode(trigPin, OUTPUT);
+  pinMode(echoPin, INPUT);
+   
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
 
+
+
+  /*
+    strip.setPixelColor(0, 255,   200,   0);
+    strip.setPixelColor(1, 255,   0,   0);
+    strip.setPixelColor(2, 255,   0,   0);
+    strip.setPixelColor(3, 255,   200,   0);
+    strip.show();
+    delay(25);
+  */
+  // put your main code here, to run repeatedly:
   /************* 압력센서 9개 선언 ************/
   int fsr0 = analogRead(fsrSensor0); // A0로 부터 아날로그 신호를 읽고 이를 fsr0에 저장
   int transFsr0 = map(fsr0, 0, 1024, 0, 255); // maapping 실시
@@ -164,153 +210,307 @@ void loop() {
 
   int fsr5 = analogRead(fsrSensor5); // A5로 부터 아날로그 신호를 읽고 이를 fsr5에 저장
   int transFsr5 = map(fsr5, 0, 1024, 0, 255); // maapping 실시
-  /*
-    int fsr6 = analogRead(fsrSensor6); // A6로 부터 아날로그 신호를 읽고 이를 fsr6에 저장
-    int transFsr6 = map(fsr6, 0, 1024, 0, 255); // maapping 실시
 
-    int fsr7 = analogRead(fsrSensor7); // A7로 부터 아날로그 신호를 읽고 이를 fsr7에 저장
-    int transFsr7 = map(fsr7, 0, 1024, 0, 255); // maapping 실시
+  int fsr6 = analogRead(fsrSensor6); // A6로 부터 아날로그 신호를 읽고 이를 fsr6에 저장
+  int transFsr6 = map(fsr6, 0, 1024, 0, 255); // maapping 실시
 
-    int fsr8 = analogRead(fsrSensor8); // A8로 부터 아날로그 신호를 읽고 이를 fsr8에 저장
-    int transFsr8 = map(fsr8, 0, 1024, 0, 255); // maapping 실시
-  */
+  int fsr7 = analogRead(fsrSensor7); // A7로 부터 아날로그 신호를 읽고 이를 fsr7에 저장
+  int transFsr7 = map(fsr7, 0, 1024, 0, 255); // maapping 실시
+
+  int fsr8 = analogRead(fsrSensor8); // A8로 부터 아날로그 신호를 읽고 이를 fsr8에 저장
+  int transFsr8 = map(fsr8, 0, 1024, 0, 255); // maapping 실시
+
+
+  /////
+
+  // 초음파를 보낸다. 다 보내면 echo가 HIGH 상태로 대기하게 된다.
+  digitalWrite(trigPin, LOW);
+  digitalWrite(echoPin, LOW);
+  delayMicroseconds(2);
+  digitalWrite(trigPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigPin, LOW);
+
+
+  // echoPin 이 HIGH를 유지한 시간을 저장 한다.
+  unsigned long duration = pulseIn(echoPin, HIGH);
+  // HIGH 였을 때 시간(초음파가 보냈다가 다시 들어온 시간)을 가지고 거리를 계산 한다.
+  float distance = ((float)(340 * duration) / 10000) / 2;
+
 
   /************* 사용자가 3개의 패턴을 입력할때까지 압력센서로 입력을 받음 ************/
 
-  if (pwIndex < 3)
+  if (distance < 100)
   {
+strip.setBrightness(bt);
 
-    if (transFsr0 > 6)
+    colorWipe(pwIndex);
+    Serial.println("사용자가 접근하였습니다.");
+    if (pwIndex < 3)
     {
-      Serial.print("현재 ");
-      Serial.print(pwIndex);
-      Serial.println("번째 암호가 입력되었습니다.");
-      Serial.println("0번");
-      ptXY[pwIndex].setXY(0, 0);
-      if (pwIndex != 0)
+
+      if (transFsr0 > 6)
       {
-        pwIndex += checkPrePoint(ptXY[pwIndex], ptXY[pwIndex - 1]);
+        Serial.print("현재 ");
+        Serial.print(pwIndex);
+        Serial.println("번째 암호가 입력되었습니다.");
+        Serial.println("0번");
+        ptXY[pwIndex].setXY(0, 0);
+        if (pwIndex != 0)
+        {
+          pwIndex += checkPrePoint(ptXY[pwIndex], ptXY[pwIndex - 1]);
+        }
+        pwIndex++;
       }
-      pwIndex++;
-    }
-    if (transFsr1 > 6)
-    {
-      Serial.print("현재 ");
-      Serial.print(pwIndex);
-      Serial.println("번째 암호가 입력되었습니다.");
-      Serial.println("1번");
-      ptXY[pwIndex].setXY(1, 0);
-      if (pwIndex != 0)
+
+      if (transFsr1 > 6)
       {
-        pwIndex += checkPrePoint(ptXY[pwIndex], ptXY[pwIndex - 1]);
+        Serial.print("현재 ");
+        Serial.print(pwIndex);
+        Serial.println("번째 암호가 입력되었습니다.");
+        Serial.println("1번");
+        ptXY[pwIndex].setXY(1, 0);
+        if (pwIndex != 0)
+        {
+          pwIndex += checkPrePoint(ptXY[pwIndex], ptXY[pwIndex - 1]);
+        }
+        pwIndex ++;
       }
-      pwIndex ++;
-    }
-    if (transFsr2 > 6)
-    {
-      Serial.print("현재 ");
-      Serial.print(pwIndex);
-      Serial.println("번째 암호가 입력되었습니다.");
-      Serial.println("2번");
-      ptXY[pwIndex].setXY(2, 0);
-      if (pwIndex != 0)
+      if (transFsr2 > 6)
       {
-        pwIndex += checkPrePoint(ptXY[pwIndex], ptXY[pwIndex - 1]);
+        Serial.print("현재 ");
+        Serial.print(pwIndex);
+        Serial.println("번째 암호가 입력되었습니다.");
+        Serial.println("2번");
+        ptXY[pwIndex].setXY(2, 0);
+        if (pwIndex != 0)
+        {
+          pwIndex += checkPrePoint(ptXY[pwIndex], ptXY[pwIndex - 1]);
+        }
+        pwIndex ++;
       }
-      pwIndex ++;
-    }
-    if (transFsr3 > 6)
-    {
-      Serial.print("현재 ");
-      Serial.print(pwIndex);
-      Serial.println("번째 암호가 입력되었습니다.");
-      Serial.println("3번");
-      ptXY[pwIndex].setXY(0, 1);
-      if (pwIndex != 0)
+      if (transFsr3 > 6)
       {
-        pwIndex += checkPrePoint(ptXY[pwIndex], ptXY[pwIndex - 1]);
+        Serial.print("현재 ");
+        Serial.print(pwIndex);
+        Serial.println("번째 암호가 입력되었습니다.");
+        Serial.println("3번");
+        ptXY[pwIndex].setXY(0, 1);
+        if (pwIndex != 0)
+        {
+          pwIndex += checkPrePoint(ptXY[pwIndex], ptXY[pwIndex - 1]);
+        }
+        pwIndex ++;
       }
-      pwIndex ++;
-    }
-    if (transFsr4 > 6)
-    {
-      Serial.print("현재 ");
-      Serial.print(pwIndex);
-      Serial.println("번째 암호가 입력되었습니다.");
-      Serial.println("4번");
-      ptXY[pwIndex].setXY(1, 1);
-      if (pwIndex != 0)
+      if (transFsr4 > 6)
       {
-        pwIndex += checkPrePoint(ptXY[pwIndex], ptXY[pwIndex - 1]);
+        Serial.print("현재 ");
+        Serial.print(pwIndex);
+        Serial.println("번째 암호가 입력되었습니다.");
+        Serial.println("4번");
+        ptXY[pwIndex].setXY(1, 1);
+        if (pwIndex != 0)
+        {
+          pwIndex += checkPrePoint(ptXY[pwIndex], ptXY[pwIndex - 1]);
+        }
+        pwIndex ++;
       }
-      pwIndex ++;
-    }
-    if (transFsr5 > 6)
-    {
-      Serial.print("현재 ");
-      Serial.print(pwIndex);
-      Serial.println("번째 암호가 입력되었습니다.");
-      Serial.println("5번");
-      ptXY[pwIndex].setXY(2, 1);
-      if (pwIndex != 0)
+      if (transFsr5 > 6)
       {
-        pwIndex += checkPrePoint(ptXY[pwIndex], ptXY[pwIndex - 1]);
+        Serial.print("현재 ");
+        Serial.print(pwIndex);
+        Serial.println("번째 암호가 입력되었습니다.");
+        Serial.println("5번");
+        ptXY[pwIndex].setXY(2, 1);
+        if (pwIndex != 0)
+        {
+          pwIndex += checkPrePoint(ptXY[pwIndex], ptXY[pwIndex - 1]);
+        }
+        pwIndex ++;
       }
-      pwIndex ++;
-    }
-    /*
+
       if (transFsr6 > 6)
       {
-      ptXY[pwIndex].setXY(0, 2);
-      if (pwIndex != 0)
-      {
-       pwIndex += checkPrePoint(ptXY[pwIndex], ptXY[pwIndex - 1]);
-      }
-      pwIndex ++;
+        Serial.print("현재 ");
+        Serial.print(pwIndex);
+        Serial.println("번째 암호가 입력되었습니다.");
+        Serial.println("6번");
+        ptXY[pwIndex].setXY(0, 2);
+        if (pwIndex != 0)
+        {
+          pwIndex += checkPrePoint(ptXY[pwIndex], ptXY[pwIndex - 1]);
+        }
+        pwIndex ++;
       }
       if (transFsr7 > 6)
       {
-      ptXY[pwIndex].setXY(1, 2);
-      if (pwIndex != 0)
-      {
-       pwIndex += checkPrePoint(ptXY[pwIndex], ptXY[pwIndex - 1]);
-      }
-      pwIndex ++;
+        Serial.print("현재 ");
+        Serial.print(pwIndex);
+        Serial.println("번째 암호가 입력되었습니다.");
+        Serial.println("7번");
+        ptXY[pwIndex].setXY(1, 2);
+        if (pwIndex != 0)
+        {
+          pwIndex += checkPrePoint(ptXY[pwIndex], ptXY[pwIndex - 1]);
+        }
+        pwIndex ++;
       }
       if (transFsr8 > 6)
       {
-      ptXY[pwIndex].setXY(2, 2);
-      if (pwIndex != 0)
+        Serial.print("현재 ");
+        Serial.print(pwIndex);
+        Serial.println("번째 암호가 입력되었습니다.");
+        Serial.println("8번");
+        ptXY[pwIndex].setXY(2, 2);
+        if (pwIndex != 0)
+        {
+          pwIndex += checkPrePoint(ptXY[pwIndex], ptXY[pwIndex - 1]);
+        }
+        pwIndex ++;
+      }
+
+    }
+
+    else if (pwIndex == 3)
+    {
+      Serial.println("입력된 비밀번호 입니다.");
+      printPoint(ptXY);
+
+
+      Serial.println("현재 비밀번호 입니다.");
+      printPoint(pw.passwdXY);
+
+      if (calArea(ptXY, pw.passwdXY) == 1 && calDiffPoint(ptXY, pw.passwdXY) == 1)
       {
-       pwIndex += checkPrePoint(ptXY[pwIndex], ptXY[pwIndex - 1]);
+
+        Serial.println("암호 일치\n");
+        pwIndex = 0;
+        myservo.write(90);
+        openFlag = 1;
+        delay(1000);
+
       }
-      pwIndex ++;
+      else {
+        
+        Serial.println("암호 불일치\n");
+        pwIndex = 0;
+        myservo.write(0);
+        openFlag = 0;
+        colorWipe(5);
+        delay(1000);
       }
-    */
+    }
   }
 
-  else if (pwIndex == 3)
+  else
   {
-    Serial.println("입력된 비밀번호 입니다.");
-    printPoint(ptXY);
-
-
-    Serial.println("현재 비밀번호 입니다.");
-    printPoint(pw.passwdXY);
-
-    if (calArea(ptXY, pw.passwdXY) == 1 && calDiffPoint(ptXY, pw.passwdXY) == 1)
+    colorWipe(4);
+    Serial.println("사용자 접근 대기중");
+    if (openFlag == 1)
     {
-
-      Serial.println("암호 일치\n");
-      pwIndex = 0;
-      delay(1000);
+      Serial.println("현재 잠금 해제 상태입니다.");
+      timer += 0.5;
+      Serial.println(timer);
+      if (timer > 3.0)
+      {
+        myservo.write(0);
+        timer = 0;
+        openFlag = 0;
+        
+      }
     }
     else {
-      Serial.println("암호 불일치\n");
-      pwIndex = 0;
-      delay(1000);
+      Serial.println("현재 잠금 상태입니다.");
+
     }
+    bt = 0;
+    delay(500);
   }
 
+
+}
+
+void colorWipe(int colorDate) {
+
+    if (bt == 80)
+    {
+    }
+    else {
+      bt += 2;
+    }
+    
+    if (colorDate == 0)
+    {
+
+      uint32_t color = strip.Color(0, 0, 255);
+
+      strip.setPixelColor(0, color);
+      strip.setPixelColor(1, color);
+      strip.setPixelColor(2, color);
+      strip.setPixelColor(3, color);
+      strip.show();
+
+
+    }
+
+    else if (colorDate == 1)
+    {
+      uint32_t color = strip.Color(255, 100, 0);
+
+      strip.setPixelColor(0, color);
+      strip.setPixelColor(1, color);
+      strip.setPixelColor(2, color);
+      strip.setPixelColor(3, color);
+      strip.show();
+
+    }
+
+    else if (colorDate == 2)
+    {
+      uint32_t color = strip.Color(255, 100, 100);
+      strip.setPixelColor(0, color);
+      strip.setPixelColor(1, color);
+      strip.setPixelColor(2, color);
+      strip.setPixelColor(3, color);
+      strip.show();
+      //delay(50);
+
+    }
+    else if (colorDate == 3)
+    {
+      uint32_t color = strip.Color(0, 255, 0);
+      strip.setPixelColor(0, color);
+      strip.setPixelColor(1, color);
+      strip.setPixelColor(2, color);
+      strip.setPixelColor(3, color);
+      strip.show();
+      //delay(50);
+
+    }
+    else if (colorDate == 4)
+    {
+      uint32_t color = strip.Color(0, 0, 0);
+      strip.setPixelColor(0, color);
+      strip.setPixelColor(1, color);
+      strip.setPixelColor(2, color);
+      strip.setPixelColor(3, color);
+      strip.show();
+      //delay(50);
+
+    }
+    else if (colorDate == 5)
+    {
+      uint32_t color = strip.Color(255, 0, 0);
+      strip.setPixelColor(0, color);
+      strip.setPixelColor(1, color);
+      strip.setPixelColor(2, color);
+      strip.setPixelColor(3, color);
+      strip.show();
+      //delay(50);
+
+    }
+
+
+  
 
 }
