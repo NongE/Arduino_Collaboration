@@ -157,6 +157,26 @@ int openFlag = 0;
 float timer;
 int bt = 0;
 
+int fsr0;
+int fsr1;
+int fsr2;
+int fsr3;
+int fsr4;
+int fsr5;
+int fsr6;
+int fsr7;
+int fsr8;
+
+int transFsr0;
+int transFsr1;
+int transFsr2;
+int transFsr3;
+int transFsr4;
+int transFsr5;
+int transFsr6;
+int transFsr7;
+int transFsr8;
+
 void setup() {
 
 #if defined(__AVR_ATtiny85__) && (F_CPU == 16000000)
@@ -167,94 +187,89 @@ void setup() {
   strip.show();
 
 
+   
+
+
   /*************초기 암호 설정(1,4,5) ************/
   Serial.begin(9600);
-  pw.passwdXY[0].setXY(0, 0);
-  pw.passwdXY[1].setXY(0, 1);
-  pw.passwdXY[2].setXY(1, 1);
+  pw.passwdXY[0].setXY(1, 0);
+  pw.passwdXY[1].setXY(1, 1);
+  pw.passwdXY[2].setXY(0, 1);
   myservo.attach(7);
   myservo.write(0);
   pinMode(trigPin, OUTPUT);
   pinMode(echoPin, INPUT);
-   
+
 }
 
 void loop() {
 
-
-
-  /*
-    strip.setPixelColor(0, 255,   200,   0);
-    strip.setPixelColor(1, 255,   0,   0);
-    strip.setPixelColor(2, 255,   0,   0);
-    strip.setPixelColor(3, 255,   200,   0);
-    strip.show();
-    delay(25);
-  */
-  // put your main code here, to run repeatedly:
+ // put your main code here, to run repeatedly:
   /************* 압력센서 9개 선언 ************/
-  int fsr0 = analogRead(fsrSensor0); // A0로 부터 아날로그 신호를 읽고 이를 fsr0에 저장
-  int transFsr0 = map(fsr0, 0, 1024, 0, 255); // maapping 실시
+  fsr0 = analogRead(fsrSensor0); // A0로 부터 아날로그 신호를 읽고 이를 fsr0에 저장
+  transFsr0 = map(fsr0, 0, 1024, 0, 255); // maapping 실시
 
-  int fsr1 = analogRead(fsrSensor1); // A1로 부터 아날로그 신호를 읽고 이를 fsr1에 저장
-  int transFsr1 = map(fsr1, 0, 1024, 0, 255); // maapping 실시
+  fsr1 = analogRead(fsrSensor1); // A1로 부터 아날로그 신호를 읽고 이를 fsr1에 저장
+  transFsr1 = map(fsr1, 0, 1024, 0, 255); // maapping 실시
 
-  int fsr2 = analogRead(fsrSensor2); // A2로 부터 아날로그 신호를 읽고 이를 fsr2에 저장
-  int transFsr2 = map(fsr2, 0, 1024, 0, 255); // maapping 실시
+  fsr2 = analogRead(fsrSensor2); // A2로 부터 아날로그 신호를 읽고 이를 fsr2에 저장
+  transFsr2 = map(fsr2, 0, 1024, 0, 255); // maapping 실시
 
-  int fsr3 = analogRead(fsrSensor3); // A3로 부터 아날로그 신호를 읽고 이를 fsr3에 저장
-  int transFsr3 = map(fsr3, 0, 1024, 0, 255); // maapping 실시
+  fsr3 = analogRead(fsrSensor3); // A3로 부터 아날로그 신호를 읽고 이를 fsr3에 저장
+  transFsr3 = map(fsr3, 0, 1024, 0, 255); // maapping 실시
 
-  int fsr4 = analogRead(fsrSensor4); // A4로 부터 아날로그 신호를 읽고 이를 fsr4에 저장
-  int transFsr4 = map(fsr4, 0, 1024, 0, 255); // maapping 실시
+  fsr4 = analogRead(fsrSensor4); // A4로 부터 아날로그 신호를 읽고 이를 fsr4에 저장
+  transFsr4 = map(fsr4, 0, 1024, 0, 255); // maapping 실시
 
-  int fsr5 = analogRead(fsrSensor5); // A5로 부터 아날로그 신호를 읽고 이를 fsr5에 저장
-  int transFsr5 = map(fsr5, 0, 1024, 0, 255); // maapping 실시
+  fsr5 = analogRead(fsrSensor5); // A5로 부터 아날로그 신호를 읽고 이를 fsr5에 저장
+  transFsr5 = map(fsr5, 0, 1024, 0, 255); // maapping 실시
 
-  int fsr6 = analogRead(fsrSensor6); // A6로 부터 아날로그 신호를 읽고 이를 fsr6에 저장
-  int transFsr6 = map(fsr6, 0, 1024, 0, 255); // maapping 실시
+  fsr6 = analogRead(fsrSensor6); // A6로 부터 아날로그 신호를 읽고 이를 fsr6에 저장
+  transFsr6 = map(fsr6, 0, 1024, 0, 255); // maapping 실시
 
-  int fsr7 = analogRead(fsrSensor7); // A7로 부터 아날로그 신호를 읽고 이를 fsr7에 저장
-  int transFsr7 = map(fsr7, 0, 1024, 0, 255); // maapping 실시
+  fsr7 = analogRead(fsrSensor7); // A7로 부터 아날로그 신호를 읽고 이를 fsr7에 저장
+  transFsr7 = map(fsr7, 0, 1024, 0, 255); // maapping 실시
 
-  int fsr8 = analogRead(fsrSensor8); // A8로 부터 아날로그 신호를 읽고 이를 fsr8에 저장
-  int transFsr8 = map(fsr8, 0, 1024, 0, 255); // maapping 실시
+  fsr8 = analogRead(fsrSensor8); // A8로 부터 아날로그 신호를 읽고 이를 fsr8에 저장
+  transFsr8 = map(fsr8, 0, 1024, 0, 255); // maapping 실시
 
 
   /////
 
   // 초음파를 보낸다. 다 보내면 echo가 HIGH 상태로 대기하게 된다.
-  digitalWrite(trigPin, LOW);
-  digitalWrite(echoPin, LOW);
-  delayMicroseconds(2);
+  //digitalWrite(trigPin, LOW);
+  //digitalWrite(echoPin, LOW);
+  //delayMicroseconds(2);
   digitalWrite(trigPin, HIGH);
-  delayMicroseconds(10);
+  delayMicroseconds(2);
   digitalWrite(trigPin, LOW);
+
 
 
   // echoPin 이 HIGH를 유지한 시간을 저장 한다.
   unsigned long duration = pulseIn(echoPin, HIGH);
   // HIGH 였을 때 시간(초음파가 보냈다가 다시 들어온 시간)을 가지고 거리를 계산 한다.
   float distance = ((float)(340 * duration) / 10000) / 2;
-
+  Serial.println(distance);
 
   /************* 사용자가 3개의 패턴을 입력할때까지 압력센서로 입력을 받음 ************/
 
-  if (distance < 100)
+  if (distance < 90  || distance>= 810)
   {
-strip.setBrightness(bt);
-
+    strip.setBrightness(bt);
+    
     colorWipe(pwIndex);
-    Serial.println("사용자가 접근하였습니다.");
+    //Serial.println("사용자가 접근하였습니다.");
     if (pwIndex < 3)
     {
 
-      if (transFsr0 > 6)
+      if (transFsr0 > 10)
       {
         Serial.print("현재 ");
         Serial.print(pwIndex);
         Serial.println("번째 암호가 입력되었습니다.");
         Serial.println("0번");
+        
         ptXY[pwIndex].setXY(0, 0);
         if (pwIndex != 0)
         {
@@ -263,7 +278,7 @@ strip.setBrightness(bt);
         pwIndex++;
       }
 
-      if (transFsr1 > 6)
+      if (transFsr1 > 10)
       {
         Serial.print("현재 ");
         Serial.print(pwIndex);
@@ -276,7 +291,7 @@ strip.setBrightness(bt);
         }
         pwIndex ++;
       }
-      if (transFsr2 > 6)
+      if (transFsr2 > 10)
       {
         Serial.print("현재 ");
         Serial.print(pwIndex);
@@ -289,7 +304,7 @@ strip.setBrightness(bt);
         }
         pwIndex ++;
       }
-      if (transFsr3 > 6)
+      if (transFsr3 > 10)
       {
         Serial.print("현재 ");
         Serial.print(pwIndex);
@@ -302,7 +317,7 @@ strip.setBrightness(bt);
         }
         pwIndex ++;
       }
-      if (transFsr4 > 6)
+      if (transFsr4 > 10)
       {
         Serial.print("현재 ");
         Serial.print(pwIndex);
@@ -315,7 +330,7 @@ strip.setBrightness(bt);
         }
         pwIndex ++;
       }
-      if (transFsr5 > 6)
+      if (transFsr5 > 10)
       {
         Serial.print("현재 ");
         Serial.print(pwIndex);
@@ -329,7 +344,7 @@ strip.setBrightness(bt);
         pwIndex ++;
       }
 
-      if (transFsr6 > 6)
+      if (transFsr6 > 10)
       {
         Serial.print("현재 ");
         Serial.print(pwIndex);
@@ -342,7 +357,7 @@ strip.setBrightness(bt);
         }
         pwIndex ++;
       }
-      if (transFsr7 > 6)
+      if (transFsr7 > 10)
       {
         Serial.print("현재 ");
         Serial.print(pwIndex);
@@ -355,7 +370,7 @@ strip.setBrightness(bt);
         }
         pwIndex ++;
       }
-      if (transFsr8 > 6)
+      if (transFsr8 > 10)
       {
         Serial.print("현재 ");
         Serial.print(pwIndex);
@@ -368,7 +383,7 @@ strip.setBrightness(bt);
         }
         pwIndex ++;
       }
-
+delay(30);
     }
 
     else if (pwIndex == 3)
@@ -391,7 +406,7 @@ strip.setBrightness(bt);
 
       }
       else {
-        
+
         Serial.println("암호 불일치\n");
         pwIndex = 0;
         myservo.write(0);
@@ -405,10 +420,10 @@ strip.setBrightness(bt);
   else
   {
     colorWipe(4);
-    Serial.println("사용자 접근 대기중");
+    // Serial.println("사용자 접근 대기중");
     if (openFlag == 1)
     {
-      Serial.println("현재 잠금 해제 상태입니다.");
+      //Serial.println("현재 잠금 해제 상태입니다.");
       timer += 0.5;
       Serial.println(timer);
       if (timer > 3.0)
@@ -416,7 +431,7 @@ strip.setBrightness(bt);
         myservo.write(0);
         timer = 0;
         openFlag = 0;
-        
+
       }
     }
     else {
@@ -424,7 +439,7 @@ strip.setBrightness(bt);
 
     }
     bt = 0;
-    delay(500);
+    delay(300);
   }
 
 
@@ -432,85 +447,85 @@ strip.setBrightness(bt);
 
 void colorWipe(int colorDate) {
 
-    if (bt == 80)
-    {
-    }
-    else {
-      bt += 2;
-    }
-    
-    if (colorDate == 0)
-    {
+  if (bt == 80)
+  {
+  }
+  else {
+    bt += 2;
+  }
 
-      uint32_t color = strip.Color(0, 0, 255);
+  if (colorDate == 0)
+  {
 
-      strip.setPixelColor(0, color);
-      strip.setPixelColor(1, color);
-      strip.setPixelColor(2, color);
-      strip.setPixelColor(3, color);
-      strip.show();
+    uint32_t color = strip.Color(0, 0, 255);
 
-
-    }
-
-    else if (colorDate == 1)
-    {
-      uint32_t color = strip.Color(255, 100, 0);
-
-      strip.setPixelColor(0, color);
-      strip.setPixelColor(1, color);
-      strip.setPixelColor(2, color);
-      strip.setPixelColor(3, color);
-      strip.show();
-
-    }
-
-    else if (colorDate == 2)
-    {
-      uint32_t color = strip.Color(255, 100, 100);
-      strip.setPixelColor(0, color);
-      strip.setPixelColor(1, color);
-      strip.setPixelColor(2, color);
-      strip.setPixelColor(3, color);
-      strip.show();
-      //delay(50);
-
-    }
-    else if (colorDate == 3)
-    {
-      uint32_t color = strip.Color(0, 255, 0);
-      strip.setPixelColor(0, color);
-      strip.setPixelColor(1, color);
-      strip.setPixelColor(2, color);
-      strip.setPixelColor(3, color);
-      strip.show();
-      //delay(50);
-
-    }
-    else if (colorDate == 4)
-    {
-      uint32_t color = strip.Color(0, 0, 0);
-      strip.setPixelColor(0, color);
-      strip.setPixelColor(1, color);
-      strip.setPixelColor(2, color);
-      strip.setPixelColor(3, color);
-      strip.show();
-      //delay(50);
-
-    }
-    else if (colorDate == 5)
-    {
-      uint32_t color = strip.Color(255, 0, 0);
-      strip.setPixelColor(0, color);
-      strip.setPixelColor(1, color);
-      strip.setPixelColor(2, color);
-      strip.setPixelColor(3, color);
-      strip.show();
-      //delay(50);
-
-    }
+    strip.setPixelColor(0, color);
+    strip.setPixelColor(1, color);
+    strip.setPixelColor(2, color);
+    strip.setPixelColor(3, color);
+    strip.show();
 
 
-  
+  }
+
+  else if (colorDate == 1)
+  {
+    uint32_t color = strip.Color(255, 100, 0);
+
+    strip.setPixelColor(0, color);
+    strip.setPixelColor(1, color);
+    strip.setPixelColor(2, color);
+    strip.setPixelColor(3, color);
+    strip.show();
+
+  }
+
+  else if (colorDate == 2)
+  {
+    uint32_t color = strip.Color(255, 100, 100);
+    strip.setPixelColor(0, color);
+    strip.setPixelColor(1, color);
+    strip.setPixelColor(2, color);
+    strip.setPixelColor(3, color);
+    strip.show();
+    //delay(50);
+
+  }
+  else if (colorDate == 3)
+  {
+    uint32_t color = strip.Color(0, 255, 0);
+    strip.setPixelColor(0, color);
+    strip.setPixelColor(1, color);
+    strip.setPixelColor(2, color);
+    strip.setPixelColor(3, color);
+    strip.show();
+    //delay(50);
+
+  }
+  else if (colorDate == 4)
+  {
+    uint32_t color = strip.Color(0, 0, 0);
+    strip.setPixelColor(0, color);
+    strip.setPixelColor(1, color);
+    strip.setPixelColor(2, color);
+    strip.setPixelColor(3, color);
+    strip.show();
+    //delay(50);
+
+  }
+  else if (colorDate == 5)
+  {
+    uint32_t color = strip.Color(255, 0, 0);
+    strip.setPixelColor(0, color);
+    strip.setPixelColor(1, color);
+    strip.setPixelColor(2, color);
+    strip.setPixelColor(3, color);
+    strip.show();
+    //delay(50);
+
+  }
+
+
+
 
 }
